@@ -1,0 +1,14 @@
+{
+  "name": "GastroHub - Next-Gen Food & Hospitality",
+  "description": "A production-grade, integrated food delivery and dine-out hospitality platform with AI recommendations, real-time tracking, and 3D experiences.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI-powered recommendations",
+    "Real-time order tracking",
+    "Table reservation system",
+    "3D restaurant preview"
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Premium user profile for GastroHub",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "oracle", "admin"] },
+        "points": { "type": "number" },
+        "tier": { "type": "string", "enum": ["Standard", "Elite", "Oracle"] },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "dietary": { "type": "array", "items": { "type": "string" } },
+            "spiceLevel": { "type": "string" },
+            "favoriteCuisines": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Restaurant": {
+      "title": "Restaurant",
+      "description": "Curated hospitality venue",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "rating": { "type": "number" },
+        "priceRange": { "type": "string" },
+        "cuisine": { "type": "string" },
+        "coordinates": { "type": "object" },
+        "isLive": { "type": "boolean" }
+      }
+    },
+    "MenuItem": {
+      "title": "Menu Item",
+      "properties": {
+        "restaurantId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "properties": {
+        "userId": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["synthesis", "calibration", "transit", "delivered"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Reservation": {
+      "title": "Reservation",
+      "properties": {
+        "userId": { "type": "string" },
+        "restaurantId": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "guests": { "type": "number" },
+        "tableSector": { "type": "string" }
+      }
+    },
+    "Post": {
+      "title": "Social Post",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatar": { "type": "string" },
+        "image": { "type": "string" },
+        "text": { "type": "string" },
+        "likes": { "type": "number" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Event": {
+      "title": "Hospitality Event",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "location": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "tags": { "type": "array" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/restaurants/{restaurantId}": {
+      "schema": "Restaurant",
+      "description": "Venue records"
+    },
+    "/restaurants/{restaurantId}/menu": {
+      "schema": "MenuItem",
+      "description": "Menu for specific restaurant"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Order records"
+    },
+    "/reservations/{reservationId}": {
+      "schema": "Reservation",
+      "description": "Table bookings"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Social feed items"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Exclusive events"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function verified() { return request.auth.token.email_verified == true; }
+
+    // User Profile Rules
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == userId
+          && data.email is string && data.email.size() <= 256
+          && data.displayName is string && data.displayName.size() <= 100
+          && (data.point is number || !data.keys().hasAny(['points']));
+      }
+
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().tier == 'Standard';
+      allow update: if isOwner(userId) && isValidUser(incoming()) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'avatarUrl', 'preferences']);
+    }
+
+    // Restaurants (Read-only for users, Write for admins)
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      
+      match /menu/{itemId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      function isValidOrder(data) {
+        return data.userId == request.auth.uid
+          && data.items is list
+          && data.total is number
+          && data.status in ['synthesis', 'calibration', 'transit', 'delivered'];
+      }
+
+      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidOrder(incoming()) && incoming().status == 'synthesis';
+      allow update: if isAdmin(); // Only admins/system can update status usually, but for demo we allow it if user owns it but restricted
+    }
+
+    // Reservations
+    match /reservations/{reservationId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    // Events
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
